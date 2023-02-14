@@ -2,7 +2,7 @@ import React from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import coffeeStoreData from "../../coffee-stores.json";
-
+import Head from "next/head";
 export function getStaticProps({ params }) {
   return {
     props: {
@@ -11,8 +11,15 @@ export function getStaticProps({ params }) {
   };
 }
 export function getStaticPaths() {
+  const paths = coffeeStoreData.map((store) => {
+    return {
+      params: {
+        id: store.id,
+      },
+    };
+  });
   return {
-    paths: [{ params: { id: "0" } }, { params: { id: "1" } }],
+    paths,
     fallback: true,
   };
 }
@@ -23,17 +30,19 @@ const CoffeeStore = (props) => {
   if (router.isFallback) {
     return <div>Loading...</div>;
   }
+  const { name, address, neighbourhood } = props.coffeeStore;
+
   return (
     <div>
-      CoffeeStore
+      <Head>
+        <title>{name}</title>
+      </Head>
       <Link legacyBehavior href='/'>
         <a>Back to home</a>
       </Link>
-      <Link legacyBehavior href='/coffee-store/id'>
-        <a>Back to dynamic</a>
-      </Link>
-      <p>{props.coffeeStore.name}</p>
-      <p>{props.coffeeStore.address}</p>
+      <p>{name}</p>
+      <p>{address}</p>
+      <p>{neighbourhood}</p>
     </div>
   );
 };
