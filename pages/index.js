@@ -4,18 +4,18 @@ import styles from "@/styles/Home.module.css";
 import Banner from "@/components/Banner";
 import Card from "@/components/Card";
 import StoresData from "../coffee-stores.json";
+import { fetchCoffeStores } from "@/lib/coffee-stores";
 
 export async function getStaticProps(context) {
-  // const data = fetch("")
+  const coffeeStores = await fetchCoffeStores();
   return {
     props: {
-      Stores: StoresData,
+      coffeeStores,
     },
   };
 }
 
 export default function Home(props) {
-  console.log(props.Stores);
   const handleOnBannerClick = () => {
     console.log("hi");
   };
@@ -43,16 +43,16 @@ export default function Home(props) {
           width={500}
           className={styles.heroImage}
         />
-        {props.Stores.length > 0 && (
+        {props.coffeeStores.length > 0 && (
           <>
             <h2 className={styles.heading2}>Toronto stores</h2>
             <div className={styles.cardLayout}>
-              {props.Stores.map((store) => (
+              {props.coffeeStores.map((store) => (
                 <Card
                   id={store.id}
                   key={store.id}
                   name={store.name}
-                  imgUrl={store.imgUrl}
+                  imgUrl={store.imgUrl || "/static/coffe-store.jpg"}
                   href={`/coffee-store/${store.id}`}
                   className={styles.card}
                 />

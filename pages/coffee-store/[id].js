@@ -1,20 +1,23 @@
 import React from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import coffeeStoreData from "../../coffee-stores.json";
+import { fetchCoffeStores } from "@/lib/coffee-stores";
 import styles from "../../styles/Coffee-store.module.css";
 import Head from "next/head";
 import Image from "next/image";
 
-export function getStaticProps({ params }) {
+export async function getStaticProps({ params }) {
+  const coffeeStores = await fetchCoffeStores();
+
   return {
     props: {
-      coffeeStore: coffeeStoreData.find((el) => el.id.toString() === params.id),
+      coffeeStore: coffeeStores.find((el) => el.id.toString() === params.id),
     },
   };
 }
-export function getStaticPaths() {
-  const paths = coffeeStoreData.map((store) => {
+export async function getStaticPaths() {
+  const coffeeStores = await fetchCoffeStores();
+  const paths = coffeeStores.map((store) => {
     return {
       params: {
         id: store.id.toString(),
@@ -26,27 +29,17 @@ export function getStaticPaths() {
     fallback: true,
   };
 }
-//fallback prop - very interesitng one, it allows us to get the request from the server and cache it (by the first user who requests the path not influced in our paths, but in order for it to work we need to use isFallback from useRouter)
-
-//
 
 const CoffeeStore = (props) => {
   const router = useRouter();
   if (router.isFallback) {
     return <div>Loading...</div>;
   }
-  const { name, address, neighbourhood, imgUrl } = props.coffeeStore;
+  const { name, imgUrl, address, locality } = props.coffeeStore;
+
   const handleUpVoteBtn = () => {
     console.log("upvote");
   };
-
-  // name
-  // storeImgWrapper
-  // storeImg
-  // col2
-  // iconWrapper
-  // text
-  // upvoteButton
 
   return (
     <div className={styles.layout}>
@@ -57,7 +50,7 @@ const CoffeeStore = (props) => {
         <div className={styles.col1}>
           <div className={styles.backToHomeLink}>
             <Link legacyBehavior href='/'>
-              <a>Back to home</a>
+              <a>← Back to home</a>
             </Link>
           </div>
           <div className={styles.nameWrapper}>
@@ -65,7 +58,7 @@ const CoffeeStore = (props) => {
           </div>
           <div className={styles.storeImgWrapper}>
             <Image
-              src={imgUrl}
+              src={imgUrl || "/static/coffe-store.jpg"}
               width={600}
               height={300}
               className={styles.storeImage}
@@ -90,7 +83,7 @@ const CoffeeStore = (props) => {
               height='24'
               alt='Near me icon'
             />
-            <p className={styles.text}>{neighbourhood}</p>
+            <p className={styles.text}>{locality}</p>
           </div>
           <div className={styles.iconWrapper}>
             <Image

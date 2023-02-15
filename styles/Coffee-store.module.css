@@ -33,7 +33,8 @@
   line-height: 2.5rem /* 40px */;
   text-overflow: ellipsis;
   white-space: normal;
-  overflow: hidden;
+  /* overflow: hidden; */
+  z-index: 3;
 }
 
 .storeImgWrapper {
