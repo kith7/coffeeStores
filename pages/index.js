@@ -3,11 +3,14 @@ import Image from "next/image";
 import styles from "@/styles/Home.module.css";
 import Banner from "@/components/Banner";
 import Card from "@/components/Card";
-import StoresData from "../coffee-stores.json";
+import { StoreContext, ACTION_TYPES } from "./_app";
+
 import { fetchCoffeStores } from "@/lib/coffee-stores";
+import useTrackLocation from "../hooks/useGeoLocation";
+import { useEffect, useState, useContext } from "react";
 
 export async function getStaticProps(context) {
-  const coffeeStores = await fetchCoffeStores();
+  const coffeeStores = await fetchCoffeStores("41.8781%2C-87.6298");
   return {
     props: {
       coffeeStores,
@@ -16,9 +19,42 @@ export async function getStaticProps(context) {
 }
 
 export default function Home(props) {
+  const { dispatch, state } = useContext(StoreContext);
+  const { coffeeStores, latLong } = state;
+  const { handleTrackLocation, locationErrorMsg, isFindingLocation } =
+    useTrackLocation();
+  const [isFindingGeo, setIsFindingGeo] = useState(false);
+
+  const [errorMsg, seterrorMsg] = useState(null);
+
+  useEffect(() => {
+    const fetchNewStores = async () => {
+      if (latLong) {
+        try {
+          seterrorMsg("");
+          const fetchedStores = await fetchCoffeStores(latLong);
+          dispatch({
+            type: ACTION_TYPES.SET_COFFEE_STORES,
+            payload: {
+              coffeeStores: fetchedStores,
+            },
+          });
+          console.log(fetchedStores);
+        } catch (err) {
+          seterrorMsg(err.message);
+          console.log(err);
+        }
+      }
+    };
+    fetchNewStores();
+  }, [latLong]);
+
   const handleOnBannerClick = () => {
-    console.log("hi");
+    setIsFindingGeo(true);
+    handleTrackLocation();
+    setIsFindingGeo(false);
   };
+  console.log({ latLong, locationErrorMsg });
   return (
     <>
       <Head>
@@ -33,9 +69,10 @@ export default function Home(props) {
       <main className={styles.main}>
         <h1 className={styles.title}>Coffee sites</h1>
         <Banner
-          buttonText='View stores nearby'
+          buttonText={isFindingGeo ? "Locating..." : "View stores nearby"}
           handleOnClick={handleOnBannerClick}
         />
+        {locationErrorMsg && `Something went wrong... ${locationErrorMsg}`}
         <Image
           src='/static/open-doodles-coffee.png'
           alt='A man drinking coffee'
@@ -43,6 +80,25 @@ export default function Home(props) {
           width={500}
           className={styles.heroImage}
         />
+        {errorMsg && <p>Something went wrong: {errorMsg}</p>}
+        {coffeeStores && (
+          <>
+            <h2 className={styles.heading2}>Stores in my location</h2>
+            <div className={styles.cardLayout}>
+              {coffeeStores.map((store) => (
+                <Card
+                  id={store.id}
+                  key={store.id}
+                  name={store.name}
+                  imgUrl={store.imgUrl || "/static/coffe-store.jpg"}
+                  href={`/coffee-store/${store.id}`}
+                  className={styles.card}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
         {props.coffeeStores.length > 0 && (
           <>
             <h2 className={styles.heading2}>Toronto stores</h2>
