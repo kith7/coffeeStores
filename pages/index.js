@@ -5,12 +5,12 @@ import Banner from "@/components/Banner";
 import Card from "@/components/Card";
 import { StoreContext, ACTION_TYPES } from "./_app";
 
-import { fetchCoffeStores } from "@/lib/coffee-stores";
+import { fetchCoffeeStores } from "@/lib/coffee-stores";
 import useTrackLocation from "../hooks/useGeoLocation";
 import { useEffect, useState, useContext } from "react";
 
 export async function getStaticProps(context) {
-  const coffeeStores = await fetchCoffeStores("41.8781%2C-87.6298");
+  const coffeeStores = await fetchCoffeeStores();
   return {
     props: {
       coffeeStores,
@@ -32,7 +32,7 @@ export default function Home(props) {
       if (latLong) {
         try {
           seterrorMsg("");
-          const fetchedStores = await fetchCoffeStores(latLong);
+          const fetchedStores = await fetchCoffeeStores(latLong);
           dispatch({
             type: ACTION_TYPES.SET_COFFEE_STORES,
             payload: {

@@ -1,30 +1,33 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { fetchCoffeStores } from "@/lib/coffee-stores";
+import { fetchCoffeeStores } from "@/lib/coffee-stores";
 import styles from "../../styles/Coffee-store.module.css";
 import Head from "next/head";
 import Image from "next/image";
 import { StoreContext } from "../_app";
 import { isEmpty } from "@/utils";
 
-export async function getStaticProps({ params }) {
-  const coffeeStores = await fetchCoffeStores();
-  const findCoffeeStoresByIds = coffeeStores.find(
-    (el) => el.id.toString() === params.id
-  );
+export async function getStaticProps(staticProps) {
+  const params = staticProps.params;
+
+  const coffeeStores = await fetchCoffeeStores();
+  const findCoffeeStoreById = coffeeStores.find((coffeeStore) => {
+    return coffeeStore.id.toString() === params.id; //dynamic id
+  });
   return {
     props: {
-      coffeeStore: findCoffeeStoresByIds ? findCoffeeStoresByIds : {},
+      coffeeStore: findCoffeeStoreById ? findCoffeeStoreById : {},
     },
   };
 }
+
 export async function getStaticPaths() {
-  const coffeeStores = await fetchCoffeStores();
-  const paths = coffeeStores.map((store) => {
+  const coffeeStores = await fetchCoffeeStores();
+  const paths = coffeeStores.map((coffeeStore) => {
     return {
       params: {
-        id: store.id.toString(),
+        id: coffeeStore.id.toString(),
       },
     };
   });
@@ -35,13 +38,17 @@ export async function getStaticPaths() {
 }
 
 const CoffeeStore = (initialProps) => {
+  const { useEffect, useState, useContext } = React;
   const router = useRouter();
   const id = router.query.id;
+
+  const [coffeeStore, setCoffeeStore] = useState(
+    initialProps.coffeeStore || {}
+  );
   const {
     state: { coffeeStores },
   } = useContext(StoreContext);
 
-  const [coffeeStore, setCoffeeStore] = useState(initialProps.coffeeStore);
   useEffect(() => {
     if (isEmpty(initialProps.coffeeStore)) {
       if (coffeeStores.length > 0) {
@@ -52,15 +59,16 @@ const CoffeeStore = (initialProps) => {
       }
     }
   }, [id]);
-  if (router.isFallback) {
-    return <div>Loading...</div>;
-  }
-  const { name, imgUrl, address, locality } = coffeeStore;
+
+  const { name = "", imgUrl = "", address = "", locality = "" } = coffeeStore;
 
   const handleUpVoteBtn = () => {
     console.log("upvote");
   };
 
+  if (router.isFallback) {
+    return <div>Loading...</div>;
+  }
   return (
     <div className={styles.layout}>
       <Head>
