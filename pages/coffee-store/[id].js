@@ -38,8 +38,8 @@ export async function getStaticPaths() {
 }
 
 const CoffeeStore = (initialProps) => {
-  const { useEffect, useState, useContext } = React;
   const router = useRouter();
+  const { useEffect, useState, useContext } = React;
   const id = router.query.id;
 
   const [coffeeStore, setCoffeeStore] = useState(
@@ -49,18 +49,59 @@ const CoffeeStore = (initialProps) => {
     state: { coffeeStores },
   } = useContext(StoreContext);
 
+  const handleCreateCoffeeStore = async (contextCoffStore) => {
+    try {
+      const {
+        id,
+        name,
+        voting = 0,
+        imgUrl,
+        neighbourhood,
+        address,
+      } = contextCoffStore;
+      const res = await fetch("/api/createCoffeeStore", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id,
+          name,
+          address: address || "",
+          neighbourhood: neighbourhood || "",
+          voting,
+          imgUrl,
+        }),
+      });
+      const dbCoffeeStore = await res.json();
+      console.log(dbCoffeeStore);
+    } catch (err) {
+      console.err(err, "could not fetch data from db");
+    }
+  };
+
   useEffect(() => {
     if (isEmpty(initialProps.coffeeStore)) {
       if (coffeeStores.length > 0) {
-        const findCoffeeStoresByIds = coffeeStores.find((coffeeStore) => {
+        const findCoffeeStoreById = coffeeStores.find((coffeeStore) => {
           return coffeeStore.id.toString() === id;
         });
-        setCoffeeStore(findCoffeeStoresByIds);
+        if (findCoffeeStoreById) {
+          setCoffeeStore(findCoffeeStoreById);
+          handleCreateCoffeeStore(findCoffeeStoreById);
+        }
       }
+    } else {
+      handleCreateCoffeeStore(initialProps.coffeeStore);
     }
-  }, [id]);
+  }, [id, initialProps.coffeeStore]);
 
-  const { name = "", imgUrl = "", address = "", locality = "" } = coffeeStore;
+  const {
+    name = "",
+    imgUrl = "",
+    address = "",
+    neighbourhood = "",
+  } = coffeeStore;
 
   const handleUpVoteBtn = () => {
     console.log("upvote");
@@ -111,7 +152,7 @@ const CoffeeStore = (initialProps) => {
               height='24'
               alt='Near me icon'
             />
-            <p className={styles.text}>{locality}</p>
+            <p className={styles.text}>{neighbourhood}</p>
           </div>
           <div className={styles.iconWrapper}>
             <Image

@@ -32,14 +32,16 @@ export default function Home(props) {
       if (latLong) {
         try {
           seterrorMsg("");
-          const fetchedStores = await fetchCoffeeStores(latLong);
+          const res = await fetch(
+            `/api/getCoffeeStoresByLocation?latLong=${latLong}&limit=9`
+          );
+          const coffeeStores = await res.json();
           dispatch({
             type: ACTION_TYPES.SET_COFFEE_STORES,
             payload: {
-              coffeeStores: fetchedStores,
+              coffeeStores: coffeeStores,
             },
           });
-          console.log(fetchedStores);
         } catch (err) {
           seterrorMsg(err.message);
           console.log(err);
@@ -108,6 +110,7 @@ export default function Home(props) {
                   id={store.id}
                   key={store.id}
                   name={store.name}
+                  neighbourhood={store.neighbourhood}
                   imgUrl={store.imgUrl || "/static/coffe-store.jpg"}
                   href={`/coffee-store/${store.id}`}
                   className={styles.card}
