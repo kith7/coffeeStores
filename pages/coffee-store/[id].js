@@ -7,6 +7,7 @@ import Head from "next/head";
 import Image from "next/image";
 import { StoreContext } from "../_app";
 import { isEmpty } from "@/utils";
+import useSWR from "swr";
 
 export async function getStaticProps(staticProps) {
   const params = staticProps.params;
@@ -102,14 +103,50 @@ const CoffeeStore = (initialProps) => {
     address = "",
     neighbourhood = "",
   } = coffeeStore;
+  const [votingCount, setVotingCount] = useState(0);
+  const fetcher = (url) => fetch(url).then((res) => res.json());
+  const { data, error } = useSWR(`/api/getCoffeeStoreById?id=${id}`, fetcher);
 
-  const handleUpVoteBtn = () => {
-    console.log("upvote");
+  useEffect(() => {
+    if (data && data.length > 0) {
+      console.log("data from swr", data);
+      setCoffeeStore(data[0]);
+      setVotingCount(data[0].voting);
+    }
+  }, [data]);
+
+  const handleUpVoteBtn = async () => {
+    try {
+      const response = await fetch("/api/favouriteCoffeeStoreById", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id,
+          voting: votingCount,
+        }),
+      });
+
+      const dbCoffeeStore = await response.json();
+
+      if (dbCoffeeStore && dbCoffeeStore.length > 0) {
+        let count = votingCount + 1;
+        setVotingCount(count);
+      }
+    } catch (err) {
+      console.error("Error upvoting the coffee store", err);
+    }
   };
 
-  if (router.isFallback) {
-    return <div>Loading...</div>;
+  // if (router.isFallback) {
+  //   return <div>Loading...</div>;
+  // }
+
+  if (error) {
+    return <div>Something went wrong retreiving the page</div>;
   }
+
   return (
     <div className={styles.layout}>
       <Head>
@@ -161,10 +198,10 @@ const CoffeeStore = (initialProps) => {
               height='24'
               alt='Star icon'
             />
-            <p className={styles.text}>1</p>
+            <p className={styles.text}>{votingCount}</p>
           </div>
           <button className={styles.upvoteButton} onClick={handleUpVoteBtn}>
-            Up vote
+            Upvote
           </button>
         </div>
       </div>

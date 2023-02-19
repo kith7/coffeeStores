@@ -1,4 +1,17 @@
-import { table, getMinifiedRecords } from "../../lib/airtable";
+import { getMinifiedRecords } from "../../lib/airtable";
+const Airtable = require("airtable");
+const base = new Airtable({ apiKey: process.env.AIRTABLE_API_KEY }).base(
+  process.env.AIRTABLE_BASE_KEY
+);
+
+const table = base("Discover Coffee stores");
+const getMinifiedRecord = (record) => {
+  return {
+    recordId: record.id,
+    ...record.fields,
+  };
+};
+
 const createCoffeeStore = async (req, res) => {
   if (req.method === "POST") {
     //find a record
