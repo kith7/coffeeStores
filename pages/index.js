@@ -56,7 +56,7 @@ export default function Home(props) {
     handleTrackLocation();
     setIsFindingGeo(false);
   };
-  console.log({ latLong, locationErrorMsg });
+
   return (
     <>
       <Head>

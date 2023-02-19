@@ -75,7 +75,6 @@ const CoffeeStore = (initialProps) => {
         }),
       });
       const dbCoffeeStore = await res.json();
-      console.log(dbCoffeeStore);
     } catch (err) {
       console.err(err, "could not fetch data from db");
     }
@@ -95,7 +94,7 @@ const CoffeeStore = (initialProps) => {
     } else {
       handleCreateCoffeeStore(initialProps.coffeeStore);
     }
-  }, [id, initialProps.coffeeStore]);
+  }, [id, initialProps.coffeeStore, coffeeStores]);
 
   const {
     name = "",
@@ -109,7 +108,6 @@ const CoffeeStore = (initialProps) => {
 
   useEffect(() => {
     if (data && data.length > 0) {
-      console.log("data from swr", data);
       setCoffeeStore(data[0]);
       setVotingCount(data[0].voting);
     }
