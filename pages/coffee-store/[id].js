@@ -9,6 +9,8 @@ import { StoreContext } from "../_app";
 import { isEmpty } from "@/utils";
 import useSWR from "swr";
 
+const fetcher = (url) => fetch(url).then((res) => res.json());
+
 export async function getStaticProps(staticProps) {
   const params = staticProps.params;
 
@@ -103,7 +105,7 @@ const CoffeeStore = (initialProps) => {
     neighbourhood = "",
   } = coffeeStore;
   const [votingCount, setVotingCount] = useState(0);
-  const fetcher = (url) => fetch(url).then((res) => res.json());
+
   const { data, error } = useSWR(`/api/getCoffeeStoreById?id=${id}`, fetcher);
 
   useEffect(() => {
